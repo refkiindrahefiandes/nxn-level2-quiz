@@ -32,7 +32,7 @@ function FormTitle({ title, description }) {
   );
 }
 
-function FormGroup({ input, image, value, error, onChange }) {
+function FormGroup({ inputRefs, input, image, value, error, onChange }) {
   const { type, name, placeholder } = input;
   const { source, width, height } = image;
 
@@ -42,7 +42,16 @@ function FormGroup({ input, image, value, error, onChange }) {
         {placeholder}
       </label>
       <div className="input-group">
-        <input className="form-control" type={type} name={name} id={name} placeholder={placeholder} value={value} onChange={onChange} />
+        <input
+          ref={inputRefs}
+          className="form-control"
+          type={type}
+          name={name}
+          id={name}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+        />
         <ImageIcon source={source} width={width} height={height} />
       </div>
       {error && <span className="error-message">{error}</span>}
@@ -73,7 +82,9 @@ function RadioForm({ checked, onChange, label, id }) {
 }
 
 // Form Contact
-function ContactForm({ formData, formError, page, onChange }) {
+function ContactForm({ inputRefs, formData, formError, page, onChange }) {
+  const { nameRef, emailRef, phoneNumberRef, companyRef } = inputRefs;
+
   return (
     <div className="form-wrapper">
       <Step page={page} />
@@ -85,6 +96,7 @@ function ContactForm({ formData, formError, page, onChange }) {
         <FormTitle title="Contact details" description="Lorem ipsum dolor sit amet consectetur adipisc." />
         <div style={{ display: "flex", flexWrap: "wrap", gap: 28 }}>
           <FormGroup
+            inputRefs={nameRef}
             input={{ type: "text", name: "name", placeholder: "Name" }}
             image={{ source: "assets/icon/person.png", width: "20px", height: "25px" }}
             value={formData.name}
@@ -92,6 +104,7 @@ function ContactForm({ formData, formError, page, onChange }) {
             onChange={onChange}
           />
           <FormGroup
+            inputRefs={emailRef}
             input={{ type: "text", name: "email", placeholder: "Email" }}
             image={{ source: "assets/icon/email.png", width: "23px", height: "16px" }}
             value={formData.email}
@@ -99,6 +112,7 @@ function ContactForm({ formData, formError, page, onChange }) {
             onChange={onChange}
           />
           <FormGroup
+            inputRefs={phoneNumberRef}
             input={{ type: "number", name: "phone_number", placeholder: "Phone Number" }}
             image={{ source: "assets/icon/phone.png", width: "14px", height: "26px" }}
             value={formData.phone_number}
@@ -106,6 +120,7 @@ function ContactForm({ formData, formError, page, onChange }) {
             onChange={onChange}
           />
           <FormGroup
+            inputRefs={companyRef}
             input={{ type: "text", name: "company", placeholder: "Company" }}
             image={{ source: "assets/icon/company.png", width: "14px", height: "28px" }}
             value={formData.company}
@@ -224,6 +239,13 @@ function App() {
   });
   const [formError, setFormError] = React.useState({});
 
+  const inputRefs = {
+    nameRef: React.useRef(),
+    emailRef: React.useRef(),
+    phoneNumberRef: React.useRef(),
+    companyRef: React.useRef(),
+  };
+
   function handleSetValue(e) {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -244,6 +266,7 @@ function App() {
     const emailRegex = /^[\w.+\-]+@gmail\.com$/g;
     const phoneRegex = /^0[8][0-9\w]{8,12}$/g;
 
+    // Set error messages
     for (const item in errors) {
       if (!errors[item]) {
         errors[item] = `${item.charAt(0).toUpperCase() + item.slice(1).replace("_", " ")} is required`;
@@ -257,12 +280,13 @@ function App() {
       setFormError(errors);
     }
 
+    // Focus input
     if (Object.keys(errors).length === 0) {
       setPage(page + 1);
     } else {
-      for (const item in errors) {
-        {
-          document.getElementById(item).focus();
+      for (const input in inputRefs) {
+        if (inputRefs[input].current.value === "") {
+          inputRefs[input].current.focus();
           return;
         }
       }
@@ -297,7 +321,7 @@ function App() {
         <h1>Get a project quote</h1>
         <p>Please fill the form below to receive a quote for your project. Feel free to add as much detail as needed.</p>
       </div>
-      {page == 1 && <ContactForm formData={formData} formError={formError} page={page} onChange={handleSetValue} />}
+      {page == 1 && <ContactForm formData={formData} formError={formError} inputRefs={inputRefs} page={page} onChange={handleSetValue} />}
       {page == 2 && <ServicesForm formData={formData} page={page} onClick={handleSelectServices} />}
       {page == 3 && <BudgetForm formData={formData} page={page} onChange={handleCheckedBudget} />}
       {page == 4 && <SubmitForm page={page} onClick={handleSubmitForm} />}
