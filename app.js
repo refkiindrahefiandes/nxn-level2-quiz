@@ -51,6 +51,7 @@ function FormGroup({ inputRefs, input, image, value, error, onChange }) {
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          autoComplete="off"
         />
         <ImageIcon source={source} width={width} height={height} />
       </div>
@@ -284,10 +285,16 @@ function App() {
     if (Object.keys(errors).length === 0) {
       setPage(page + 1);
     } else {
-      for (const input in inputRefs) {
-        if (inputRefs[input].current.value === "") {
-          inputRefs[input].current.focus();
-          return;
+      for (const item in errors) {
+        switch (item) {
+          case "name":
+            return inputRefs.nameRef.current.focus();
+          case "email":
+            return inputRefs.emailRef.current.focus();
+          case "phone_number":
+            return inputRefs.phoneNumberRef.current.focus();
+          default:
+            return inputRefs.companyRef.current.focus();
         }
       }
     }
